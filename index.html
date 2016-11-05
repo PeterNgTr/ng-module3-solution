@@ -8,19 +8,20 @@
     <script src="angular.min.js"></script>
     <script src="app.js"></script>
 </head>
-<body ng-app="NarrowItDownApp">
-<div class="container">
+<body ng-app='NarrowItDownApp'>
+<div class="container" ng-controller='NarrowItDownController as list'>
     <h1>Narrow Down Your Chinese Menu Choice</h1>
 
-    <div class="form-group" ng-model="NarrowItDownController as narrowItDown">
-        <input type="text" placeholder="search term" class="form-control">
+    <div class="form-group">
+        <input type="text" placeholder="search term" class="form-control" ng-model="list.searchTerm">
     </div>
     <div class="form-group narrow-button">
-        <button class="btn btn-primary">Narrow It Down For Me!</button>
+        <button class="btn btn-primary" ng-click="list.getMatchedMenuItems()">Narrow It Down For Me!</button>
     </div>
-
+    <br>
+    <br>
     <!-- found-items should be implemented as a component -->
-    <found-items found-items="...." on-remove="...."></found-items>
+    <found-items found="list.items" on-remove="list.removeItem(index)"></found-items>
 </div>
 
 </body>

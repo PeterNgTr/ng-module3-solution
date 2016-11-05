@@ -9,13 +9,33 @@
 
     NarrowItDownController.$inject = ['MenuSearchService'];
     function NarrowItDownController(MenuSearchService) {
-        var narrowItDown = this;
+        var list = this;
 
-        narrowItDown.found = MenuSearchService.getMatchedMenuItems();
+        list.searchTerm = '';
+
+        list.getMatchedMenuItems = function () {
+            if (list.searchTerm === "") {
+                list.items = [];
+                return;
+            }
+
+            var promise = MenuSearchService.getMatchedMenuItems(list.searchTerm);
+
+            promise.then(function (response) {
+                list.items = response;
+            })
+                .catch(function (error) {
+                    console.log("Something went wrong", error);
+                });
+        };
+
+        list.removeItem = function(index) {
+            list.items.splice(index, 1);
+        };
     }
 
     MenuSearchService.$inject = ['$http', 'ApiBasePath'];
-    function MenuSearchService($http,ApiBasePath) {
+    function MenuSearchService($http, ApiBasePath) {
         var service = this;
 
         service.getMatchedMenuItems = function (searchTerm) {
@@ -24,10 +44,10 @@
                 url: (ApiBasePath + "/menu_items.json")
             }).then(function (result) {
                 var foundItems = [];
-                var result_array = result['menu_items'];
+                var result_array = result.data['menu_items'];
 
                 for (var i = 0; i < result_array.length; i++) {
-                    if (result_array[i].description.indexOf(searchTerm) != null) {
+                    if (result_array[i].description.toLowerCase().indexOf(searchTerm.toLowerCase()) == 0) {
                         foundItems.push(result_array[i]);
                     }
                 }
@@ -35,21 +55,31 @@
             });
         }
     }
-    
+
     function FoundItemsDirective() {
         var ddo = {
-            templateUrl: 'shoppingList.html',
+            templateUrl: 'foundItems.html',
             scope: {
-                items: '<',
-                myTitle: '@title',
-                badRemove: '=',
+                found: '<',
                 onRemove: '&'
             },
-            controller: ShoppingListDirectiveController,
+            controller: NarrowItDownDirectiveController,
             controllerAs: 'list',
             bindToController: true
         };
 
         return ddo;
+    }
+
+    function NarrowItDownDirectiveController() {
+        var list = this;
+
+        list.isEmpty = function() {
+            return list.found != undefined && list.found.length === 0;
+        }
+        
+        list.isNotEmpty = function () {
+            return list.found != undefined && list.found.length != 0;
+        }
     }
 })();
